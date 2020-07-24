@@ -1,6 +1,6 @@
 {
   "name": "@ethiclab/crud-mongo",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A module for creating REST endpoints for mongo collections",
   "main": "src/index.js",
   "scripts": {

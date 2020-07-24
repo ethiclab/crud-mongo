@@ -1,12 +1,7 @@
 (function() {
-    let f = async function(databaseName, collectionName) {
-        let db = await require("./db.js")(databaseName)
-        try {
-            let collection = await db.collection(collectionName)
-            return await collection.countDocuments({})
-        } finally {
-            db.close()
-        }
-    }
-    module.exports = f
+  let f = async function(db, collectionName) {
+    let collection = await db.collection(collectionName)
+    return await collection.countDocuments({})
+  }
+  module.exports = f
 })()

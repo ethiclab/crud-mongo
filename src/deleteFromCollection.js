@@ -1,19 +1,14 @@
 (function() {
-    let f = async function(databaseName, collectionName, id) {
-        let ObjectId = require("mongoose").Types.ObjectId
-        let db = await require("./db.js")(databaseName)
-        try {
-            let collection = await db.collection(collectionName)
-            if (id) {
-                let oid = new ObjectId(id)
-                await collection.deleteOne({ _id: oid })
-            } else {
-                collection.drop().then(() => {}).catch(() => {})
-            }
-            return null
-        } finally {
-            await db.close()
-        }
+  let f = async function(db, collectionName, id) {
+    let ObjectId = require("mongoose").Types.ObjectId
+    let collection = await db.collection(collectionName)
+    if (id) {
+      let oid = new ObjectId(id)
+      await collection.deleteOne({ _id: oid })
+    } else {
+      collection.drop().then(() => {}).catch(() => {})
     }
-    module.exports = f
+    return null
+  }
+  module.exports = f
 })()

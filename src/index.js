@@ -1,13 +1,23 @@
 'use strict';
 (function() {
-let f = (beforeCreation, router, root, db, col, addCustomInfo) => {
-    console.log(`registering crud endpoint at path ${root} on database ${db} for collection ${col}`)
+let f = (cfg) => {
+    console.log(`registering crud endpoint ${JSON.stringify(cfg, null, 4)}`)
+
+    const beforeCreation = cfg.beforeCreation
+    const router = cfg.router
+    const root = cfg.root
+    const mongoUrl = cfg.mongoUrl
+    const databaseName = cfg.databaseName
+    const col = cfg.col
+    const addCustomInfo = cfg.addCustomInfo
+    
     const readCollection = require('./readCollection.js')
     const countCollection = require('./countCollection.js')
     const insertIntoCollection = require('./insertIntoCollection.js')
     const selectFromCollection = require('./selectFromCollection.js')
     const replaceInCollection = require('./replaceInCollection.js')
     const deleteFromCollection = require('./deleteFromCollection.js')
+    const db = require('./db.js')(mongoUrl, databaseName)
 
     let create = async (c, o) => insertIntoCollection(beforeCreation, db, c, o)
     let replyCreated = (a, path, y) => {
