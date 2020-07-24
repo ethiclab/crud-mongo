@@ -109,8 +109,10 @@ let f = async (cfg) => {
     router.post(`${root}${col}`, async (q, a) => {
       const db = await connect()
       try {
-        const y = await create(`${col}`, q.body)
+        const y = await create(q.body)
         await replyCreated(a, q.path, y)
+      } catch (e) {
+        await a.status(400).send(e)
       } finally {
         await db.close()
       }
