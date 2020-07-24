@@ -1,0 +1,27 @@
+{
+  "name": "@ethiclab/crud-mongo",
+  "version": "1.0.0",
+  "description": "A module for creating REST endpoints for mongo collections",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node test/index.spec.js",
+    "cover": "nyc npm test"
+  },
+  "keywords": [
+    "mongo",
+    "rest"
+  ],
+  "author": {
+    "name": "EthicLab Team",
+    "email": "tech@ethiclab.it",
+    "url": "https://ethiclab.it"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ethiclab/crud-mongo.git"
+  },
+  "dependencies": {
+    "mongoose": "^5.9.25"
+  }
+}
