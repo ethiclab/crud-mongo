@@ -1,6 +1,9 @@
 (function() {
   let f = async function(beforeCreation, db, collectionName, obj) {
     try {
+      if (!obj) {
+        throw Error('input object cannot be null')
+      }
       let collection = await db.collection(collectionName)
       if (beforeCreation) {
         await beforeCreation(collection, obj)

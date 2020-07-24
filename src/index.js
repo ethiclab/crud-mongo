@@ -1,6 +1,6 @@
 'use strict';
 (function() {
-let f = (cfg) => {
+let f = async (cfg) => {
     console.log(`registering crud endpoint ${JSON.stringify(cfg, null, 4)}`)
 
     const beforeCreation = cfg.beforeCreation
@@ -10,6 +10,10 @@ let f = (cfg) => {
     const databaseName = cfg.databaseName
     const col = cfg.col
     const addCustomInfo = cfg.addCustomInfo
+
+    if (!router) {
+      throw Error('router not set')
+    }
     
     const readCollection = require('./readCollection.js')
     const countCollection = require('./countCollection.js')
@@ -17,9 +21,18 @@ let f = (cfg) => {
     const selectFromCollection = require('./selectFromCollection.js')
     const replaceInCollection = require('./replaceInCollection.js')
     const deleteFromCollection = require('./deleteFromCollection.js')
-    const db = require('./db.js')(mongoUrl, databaseName)
+    const connect = async () => await require('./db.js')(mongoUrl, databaseName)
 
-    let create = async (c, o) => insertIntoCollection(beforeCreation, db, c, o)
+    let create = async o => {
+      const db = await connect()
+      try {
+        const retval = await insertIntoCollection(beforeCreation, db, col, o)
+        return retval
+      } finally {
+        await db.close()
+      }
+    }
+
     let replyCreated = (a, path, y) => {
 	if (y.error) {
             a.status(500).send(y)
@@ -28,29 +41,84 @@ let f = (cfg) => {
         }
     }
 
-    let get = async (c, id) => selectFromCollection(db, c, id)
+    let count = async () => {
+      const db = await connect()
+      try {
+        const retval = await countCollection(db, col)
+        return retval
+      } finally {
+        await db.close()
+      }
+    }
+
+    let read = async () => {
+      const db = await connect()
+      try {
+        const retval = await readCollection(db, col)
+        return retval
+      } finally {
+        await db.close()
+      }
+    }
+
+    let get = async (c, id) => {
+      const db = await connect()
+      try {
+        const retval = await selectFromCollection(db, c, id)
+        return retval
+      } finally {
+        await db.close()
+      }
+    }
+
     let replyGot = (a, y) => a.status(200).send(y)
 
     let replace = async (c, id, o) => replaceInCollection(db, c, id, o)
     let replyReplaced = (a, y) => a.status(200).send(y)
 
-    let remove = async (c, id) => deleteFromCollection(db, c, id)
+    let remove = async id => {
+      const db = await connect()
+      try {
+        const retval = await deleteFromCollection(db, col, id)
+        return retval
+      } finally {
+        await db.close()
+      }
+    }
+
     let replyRemoved = (a, y) => a.status(200).send(y)
 
     let ctrl = {
-        create: obj => insertIntoCollection(null, db, col, obj),
-        drop: () => deleteFromCollection(db, col),
-        read: () => readCollection(db, col, addCustomInfo),
-        count: () => countCollection(db, col)
+        create: create,
+        drop: remove,
+        remove: remove,
+        read: read,
+        count: count
     }
 
-    if (router && root) {
-        router.get   (`${root}${col}`    , (q, a) => readCollection(db, col, addCustomInfo).then(y => a.send(y)))
-        router.post  (`${root}${col}`    , (q, a) => create (`${col}`, q.body             ).then(y => replyCreated(a, q.path, y)))
-        router.get   (`${root}${col}/:id`, (q, a) => get    (`${col}`, q.params.id        ).then(y => replyGot(a, y)))
-        router.put   (`${root}${col}/:id`, (q, a) => replace(`${col}`, q.params.id, q.body).then(y => replyReplaced(a, y)))
-        router.delete(`${root}${col}/:id`, (q, a) => remove (`${col}`, q.params.id        ).then(y => replyRemoved(a, y)))
-    }
+    router.get(`${root}${col}`, async (q, a) => {
+      const db = await connect()
+      try {
+        const y = await readCollection(db, col, addCustomInfo)
+        await a.send(y)
+      } finally {
+        await db.close()
+      }
+    })
+
+    router.post(`${root}${col}`, async (q, a) => {
+      const db = await connect()
+      try {
+        const y = await create(`${col}`, q.body)
+        await replyCreated(a, q.path, y)
+      } finally {
+        await db.close()
+      }
+    })
+
+    router.get   (`${root}${col}/:id`, (q, a) => get    (`${col}`, q.params.id        ).then(y => replyGot(a, y)))
+    router.put   (`${root}${col}/:id`, (q, a) => replace(`${col}`, q.params.id, q.body).then(y => replyReplaced(a, y)))
+    router.delete(`${root}${col}/:id`, (q, a) => remove (`${col}`, q.params.id        ).then(y => replyRemoved(a, y)))
 
     return ctrl
 }

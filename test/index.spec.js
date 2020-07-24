@@ -1,7 +1,25 @@
 const crud = require("../src/index");
 (async () => {
-  crud({
+  const controller = await crud({
     mongoUrl: 'mongodb://localhost',
-    databaseName: 'test'
+    databaseName: 'sys',
+    root: '/',
+    router: {
+      get: () => {
+        return {}
+      },
+      post: () => {
+        return {}
+      },
+      put: () => {
+        return {}
+      },
+      delete: () => {
+        return {}
+      }
+    },
+    col: 'menus'
   })
+  const x = await controller.create({})
+  console.log(x)
 })()
