@@ -6,7 +6,7 @@
       let oid = new ObjectId(id)
       await collection.deleteOne({ _id: oid })
     } else {
-      collection.drop().then(() => {}).catch(() => {})
+      await collection.drop()
     }
     return null
   }
