@@ -99,8 +99,13 @@ let f = async (cfg) => {
     router.get(`${root}${col}`, async (q, a) => {
       const db = await connect()
       try {
-        const y = await readCollection(db, col, addCustomInfo)
-        await a.send(y)
+        const y = await readCollection(db, col)
+        if (typeof addCustomInfo === 'function' && Array.isArray(y)) {
+          await addCustomInfo(db, y)
+        }
+        const yy = await JSON.parse(JSON.stringify(y))
+        console.log('yy', yy)
+        a.send(yy)
       } finally {
         await db.close()
       }
