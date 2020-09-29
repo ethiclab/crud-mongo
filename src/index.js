@@ -96,19 +96,32 @@ let f = async (cfg) => {
         count: count
     }
 
-    router.get(`${root}${col}`, async (q, a) => {
-      const db = await connect()
+    router.get(`${root}${col}`, (q, a) => {
+	  connect().then(db => {
+		  readCollection(db, col).then(y => {
+			if (typeof addCustomInfo === 'function' && Array.isArray(y)) {
+              addCustomInfo(db, y, customy => {
+			    a.send(customy)
+			  })
+			} else {
+			  a.send(y)
+			}
+		  })
+	  })
+      /*const db = await connect()
       try {
+		let yy
         const y = await readCollection(db, col)
         if (typeof addCustomInfo === 'function' && Array.isArray(y)) {
-          await addCustomInfo(db, y)
+          yy = await addCustomInfo(db, y)
         }
-        const yy = await JSON.parse(JSON.stringify(y))
-        console.log('yy', yy)
+        // const yy = await JSON.parse(JSON.stringify(y))
+        // console.log('yy', yy)
+		console.log('yy', yy)
         a.send(yy)
       } finally {
         await db.close()
-      }
+      }*/
     })
 
     router.post(`${root}${col}`, async (q, a) => {
